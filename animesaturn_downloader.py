@@ -70,8 +70,8 @@ for link in links:
     for l in playlist.split("\n"):
       if l.endswith(".ts"):
         playlist_urls.append(playlist_url.replace("playlist_480p.m3u8", l))
-
-    with open(ep_name + ".ts", "wb") as outputf:
+    ep_name_tmp = ep_name + ".ts.temp"
+    with open(ep_name_tmp, "wb") as outputf:
       n_parts = len(playlist_urls)
       print(f"Found {n_parts} parts")
       for i, pu in enumerate(playlist_urls):
@@ -79,5 +79,7 @@ for link in links:
         response = requests.get(pu, stream=True)
         assert response.status_code == 200
         outputf.write(response.content)
+
+    os.rename(ep_name_tmp, ep_name + ".ts")
 
     #os.system(f"ffmpeg -i {ep_name}.ts {ep_name}.mp4")
