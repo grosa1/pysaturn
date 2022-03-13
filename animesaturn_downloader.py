@@ -6,6 +6,8 @@ import re
 import os
 from requests_html import HTMLSession
 import traceback
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s :: %(levelname)s :: %(message)s')
 
 
 DOWNLOAD_MAX_RETRIES = 3
@@ -22,8 +24,9 @@ def download_resource(resource_url: str):
   except Exception as e:
     retries += 1
     if retries > DOWNLOAD_MAX_RETRIES:
-      traceback.print_exc()
+      logging.error(traceback.print_exc())
     else:
+      logging.warning(f"Error while downloading {url}, retrying...")
       download_resource(resource_url)
 
 
@@ -35,7 +38,7 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
   response = requests.get(main_url)
   soup = BeautifulSoup(response.text, 'html.parser') 
   links = [l.get('href') for l in soup.find_all('a', class_="bottone-ep")]
-  print(f"Found {len(links)} episode links")
+  logging.info(f"Found {len(links)} episode links")
 
   for link in links:
     ep_name = link.split('/')[-1]
@@ -44,10 +47,10 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
     ep_num = int(ep_name.split('-')[-1])
     if ep_range:
       if ep_num < ep_range_start or ep_num > ep_range_end:
-        print(f"Skipping {ep_name}")
+        logging.info(f"Skipping {ep_name}")
         continue
 
-    print(f"Processing {ep_name}")
+    logging.info(f"Processing {ep_name}")
     response = requests.get(links[0])
     soup = BeautifulSoup(response.text, 'html.parser') 
 
@@ -67,7 +70,7 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
     mp4_url = re.findall(r'(https?://\S+.mp4)', source)
     if mp4_url:
       mp4_url = mp4_url[0]
-      print(f"Downloading {mp4_url}")
+      logging.info(f"Downloading {mp4_url}")
       ep_name_tmp = ep_name + ".mp4.temp"
       with open(ep_name_tmp, "wb") as output_buffer:
         output_buffer.write(download_resource(mp4_url))
@@ -92,7 +95,7 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
       ep_name_tmp = ep_name + ".ts.temp"
       with open(ep_name_tmp, "wb") as output_buffer:
         n_parts = len(playlist_urls)
-        print(f"Found {n_parts} parts")
+        logging.info(f"Found {n_parts} parts")
         bar = Bar('Processing', max=n_parts)
         for i, pu in enumerate(playlist_urls):
           bar.next()
@@ -103,7 +106,7 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
 
 if __name__ == "__main__":
   if len(sys.argv) < 2:
-    print(f"Usage: {sys.argv[0]} <url> <episodes-range>")
+    print(f"USAGE: python3 {sys.argv[0]} <url> <episodes-range>")
     sys.exit(1)
 
   main_url = sys.argv[1]
