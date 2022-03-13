@@ -45,7 +45,7 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
     ep_name = os.path.join(out_dir, ep_name)
 
     ep_num = int(ep_name.split('-')[-1])
-    if ep_range:
+    if ep_range_start and ep_range_end:
       if ep_num < ep_range_start or ep_num > ep_range_end:
         logging.info(f"Skipping {ep_name}")
         continue
