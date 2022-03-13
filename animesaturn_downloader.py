@@ -7,7 +7,7 @@ import os
 from requests_html import HTMLSession
 import traceback
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s :: %(levelname)s :: %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(module)s %(asctime)s :: %(levelname)s :: %(message)s')
 logging.getLogger('requests_html').setLevel(logging.WARNING)
 
 
@@ -43,7 +43,7 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
 
   for link in links:
     ep_name = link.split('/')[-1]
-    ep_name = os.path.join(out_dir, ep_name)
+    ep_name_dest = os.path.join(out_dir, ep_name)
 
     ep_num = int(ep_name.split('-')[-1])
     if ep_range_start and ep_range_end:
@@ -72,10 +72,10 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
     if mp4_url:
       mp4_url = mp4_url[0]
       logging.info(f"Downloading {mp4_url}")
-      ep_name_tmp = ep_name + ".mp4.temp"
+      ep_name_tmp = ep_name_dest + ".mp4.temp"
       with open(ep_name_tmp, "wb") as output_buffer:
         output_buffer.write(download_resource(mp4_url))
-      os.rename(ep_name_tmp, ep_name + ".mp4")
+      os.rename(ep_name_tmp, ep_name_dest + ".mp4")
     else:
       # look for the stream playlist url
       stream_playlist_url = None
@@ -93,7 +93,7 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
           playlist_urls.append(stream_playlist_url.replace(f"playlist_{STREAM_RESOLUTION}.m3u8", line))
 
       # download all video segments and merge them in a buffer file
-      ep_name_tmp = ep_name + ".ts.temp"
+      ep_name_tmp = ep_name_dest + ".ts.temp"
       with open(ep_name_tmp, "wb") as output_buffer:
         n_parts = len(playlist_urls)
         logging.info(f"Found {n_parts} parts")
@@ -102,7 +102,7 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
           bar.next()
           output_buffer.write(download_resource(pu))
         bar.finish()
-      os.rename(ep_name_tmp, ep_name + ".ts")
+      os.rename(ep_name_tmp, ep_name_dest + ".ts")
 
 
 if __name__ == "__main__":
