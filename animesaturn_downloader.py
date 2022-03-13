@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import os
+from requests_html import HTMLSession
 
 
 #https://www.animesaturn.it/anime/Fullmetal-Alchemist-Brotherhood-ITA-aszb
@@ -27,9 +28,10 @@ for link in links:
   ep_name = link.split('/')[-1]
 
   ep_num = int(ep_name.split('-')[-1])
-  if ep_range and ep_num < ep_range[0] or ep_num > ep_range[1]:
-    print(f"Skipping {ep_name}")
-    continue
+  if ep_range:
+    if ep_num < ep_range[0] or ep_num > ep_range[1]:
+      print(f"Skipping {ep_name}")
+      continue
 
   print(f"Processing {ep_name}")
   response = requests.get(links[0])
@@ -41,27 +43,41 @@ for link in links:
     if "watch?file=" in url:
       stream_url = url
 
-  s = requests.get(stream_url).text
-  playlist_url = None
-  for u in re.findall(r'(https?://\S+)', s):
-    u = u.replace("\"", "").replace(",", "")
-    if u.endswith(".m3u8") and "(" not in u:
-      playlist_url = u
+  source = None
+  with HTMLSession() as session:
+    r = session.get(stream_url)
+    r.html.render()
+    source = r.html.html
 
-  playlist_url = playlist_url.replace("playlist.m3u8", "480p/playlist_480p.m3u8")
-  playlist = requests.get(playlist_url).text
-  playlist_urls = list()
-  for l in playlist.split("\n"):
-    if l.endswith(".ts"):
-      playlist_urls.append(playlist_url.replace("playlist_480p.m3u8", l))
-
-  with open(ep_name + ".ts", "wb") as outputf:
-    n_parts = len(playlist_urls)
-    print(f"Found {n_parts} parts")
-    for i, pu in enumerate(playlist_urls):
-      print(f"Downloading part {i+1} of {n_parts}")
-      response = requests.get(pu)
+  mp4_url = re.findall(r'(https?://\S+.mp4)', source)
+  if mp4_url:
+    mp4_url = mp4_url[0]
+    print(f"Downloading {mp4_url}")
+    with open(ep_name + ".mp4", "wb") as outputf:
+      response = requests.get(mp4_url, stream=True)
       assert response.status_code == 200
       outputf.write(response.content)
+  else:
+    playlist_url = None
+    for u in re.findall(r'(https?://\S+)', source):
+      u = u.replace("\"", "").replace(",", "")
+      if u.endswith(".m3u8") and "(" not in u:
+        playlist_url = u
 
-  os.system(f"ffmpeg -i {ep_name}.ts {ep_name}.mp4")
+    playlist_url = playlist_url.replace("playlist.m3u8", "480p/playlist_480p.m3u8")
+    playlist = requests.get(playlist_url).text
+    playlist_urls = list()
+    for l in playlist.split("\n"):
+      if l.endswith(".ts"):
+        playlist_urls.append(playlist_url.replace("playlist_480p.m3u8", l))
+
+    with open(ep_name + ".ts", "wb") as outputf:
+      n_parts = len(playlist_urls)
+      print(f"Found {n_parts} parts")
+      for i, pu in enumerate(playlist_urls):
+        print(f"Downloading part {i+1} of {n_parts}")
+        response = requests.get(pu, stream=True)
+        assert response.status_code == 200
+        outputf.write(response.content)
+
+    #os.system(f"ffmpeg -i {ep_name}.ts {ep_name}.mp4")
