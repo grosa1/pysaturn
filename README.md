@@ -8,7 +8,7 @@ Clone the pysaturn repository and launch the following commands:
 ```
 python3 -m pip install -r requirements.txt
 
-python3 animesaturn_downloader.py  <anime_saturn_link> <episodes_range>
+python3 animesaturn_downloader.py <anime_saturn_link> <episodes-range>
 ```
 
 Where:
