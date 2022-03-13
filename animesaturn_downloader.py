@@ -1,6 +1,7 @@
 import sys
 import requests 
 from bs4 import BeautifulSoup
+from progress.bar import Bar
 import re
 import os
 from requests_html import HTMLSession
@@ -74,11 +75,13 @@ for link in links:
     with open(ep_name_tmp, "wb") as outputf:
       n_parts = len(playlist_urls)
       print(f"Found {n_parts} parts")
+      bar = Bar('Processing', max=n_parts)
       for i, pu in enumerate(playlist_urls):
-        print(f"Downloading part {i+1} of {n_parts}")
+        bar.next()
         response = requests.get(pu, stream=True)
         assert response.status_code == 200
         outputf.write(response.content)
+      bar.finish()
 
     os.rename(ep_name_tmp, ep_name + ".ts")
 
