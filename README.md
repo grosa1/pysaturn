@@ -3,10 +3,13 @@ downloader for https://www.animesaturn.it/
 
 
 ### How to use
-- move into pysaturn folder
-- launch the following command:
+Clone the pysaturn repository and launch the following commands:
  
-```python animesaturn_downloader.py  <anime_saturn_link> <episodes_range>```
+```
+python3 -m pip install -r requirements.txt
+
+python3 animesaturn_downloader.py  <anime_saturn_link> <episodes_range>
+```
 
 Where:
 
