@@ -1,3 +1,5 @@
+from curses.ascii import isdigit
+from pickle import FALSE, NONE
 import sys
 import requests 
 from bs4 import BeautifulSoup
@@ -14,11 +16,19 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 main_url = sys.argv[1]
-ep_range = None
+ep_range = None 
+path = ""
 if len(sys.argv) > 2:
-    ep_range = sys.argv[2].split("-")
+  ep_range = sys.argv[2].split("-")
+  if (all([ep.isdigit() for ep in ep_range]) and len(ep_range) >= 2):
     ep_range[0] = int(ep_range[0])
     ep_range[1] = int(ep_range[1])
+  else :
+    ep_range = None
+    path = sys.argv[2] + "/"
+
+if len(sys.argv)  > 3:
+  path = sys.argv[3] + "/"
 
 response = requests.get(main_url)
 soup = BeautifulSoup(response.text, 'html.parser') 
@@ -71,7 +81,10 @@ for link in links:
     for l in playlist.split("\n"):
       if l.endswith(".ts"):
         playlist_urls.append(playlist_url.replace("playlist_480p.m3u8", l))
-    ep_name_tmp = ep_name + ".ts.temp"
+
+    if not (path == "") and not os.path.exists(path):
+        os.makedirs(path,exist_ok=FALSE)
+    ep_name_tmp = path + ep_name + ".ts.temp"
     with open(ep_name_tmp, "wb") as outputf:
       n_parts = len(playlist_urls)
       print(f"Found {n_parts} parts")
