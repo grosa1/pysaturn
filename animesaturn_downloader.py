@@ -9,6 +9,12 @@ import os
 from requests_html import HTMLSession
 
 
+def createPath(path):
+  if(path[-1] == "/"):
+    return path
+  return path + "/"
+
+
 #https://www.animesaturn.it/anime/Fullmetal-Alchemist-Brotherhood-ITA-aszb
 
 if len(sys.argv) < 2:
@@ -25,10 +31,10 @@ if len(sys.argv) > 2:
     ep_range[1] = int(ep_range[1])
   else :
     ep_range = None
-    path = sys.argv[2] + "/"
+    path = createPath(sys.argv[2])
 
 if len(sys.argv)  > 3:
-  path = sys.argv[3] + "/"
+  path = createPath(sys.argv[3]) 
 
 response = requests.get(main_url)
 soup = BeautifulSoup(response.text, 'html.parser') 
@@ -99,3 +105,5 @@ for link in links:
     os.rename(ep_name_tmp, ep_name + ".ts")
 
     #os.system(f"ffmpeg -i {ep_name}.ts {ep_name}.mp4")
+
+
