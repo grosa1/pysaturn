@@ -8,6 +8,7 @@ from requests_html import HTMLSession
 import traceback
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s :: %(levelname)s :: %(message)s')
+logging.getLogger('requests_html').setLevel(logging.WARNING)
 
 
 DOWNLOAD_MAX_RETRIES = 3
