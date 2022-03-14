@@ -5,6 +5,8 @@ import re
 import os
 from requests_html import HTMLSession
 import traceback
+import time
+
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s :: %(levelname)s :: %(message)s')
 logging.getLogger('requests_html').setLevel(logging.WARNING)
@@ -26,7 +28,8 @@ def download_resource(resource_url: str):
     if retries > DOWNLOAD_MAX_RETRIES:
       logging.error(traceback.print_exc())
     else:
-      logging.warning(f"Error while downloading {url}, retrying...")
+      logging.warning(f"Error while downloading {resource_url}, retrying...")
+      time.sleep(3)
       download_resource(resource_url)
 
 
