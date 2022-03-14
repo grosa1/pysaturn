@@ -20,7 +20,7 @@ STREAM_RESOLUTION = "480p"
 def download_resource(resource_url: str):
   retries = 0
   try:
-    response = requests.get(resource_url, stream=True)
+    response = requests.get(resource_url, timeout=10)
     assert response.status_code == 200
     return response.content
   except Exception as e:
