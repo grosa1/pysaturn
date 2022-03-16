@@ -30,7 +30,7 @@ def download_resource(resource_url: str):
     else:
       logging.warning(f"Error while downloading {resource_url}, retrying...")
       time.sleep(3)
-      download_resource(resource_url)
+      return download_resource(resource_url)
 
 
 def main(main_url: str, ep_range_start: int, ep_range_end: int):
