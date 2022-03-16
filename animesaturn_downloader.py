@@ -1,9 +1,11 @@
+from multiprocessing.connection import wait
 import sys
 import requests 
 from bs4 import BeautifulSoup
 import re
 import os
 from requests_html import HTMLSession
+from urllib.request import urlopen
 import traceback
 import time
 
@@ -13,8 +15,7 @@ logging.getLogger('requests_html').setLevel(logging.WARNING)
 
 
 DOWNLOAD_MAX_RETRIES = 3
-STREAM_RESOLUTION = "480p"
-#STREAM_RESOLUTION = "720p"
+MAX_RESOLUTION_POSITION = 1
 
 
 def download_resource(resource_url: str):
@@ -30,7 +31,7 @@ def download_resource(resource_url: str):
     else:
       logging.warning(f"Error while downloading {resource_url}, retrying...")
       time.sleep(3)
-      return download_resource(resource_url)
+      download_resource(resource_url)
 
 
 def main(main_url: str, ep_range_start: int, ep_range_end: int):
@@ -81,18 +82,26 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
     else:
       # look for the stream playlist url
       stream_playlist_url = None
+      stream_resolution = None
+      resolutions = []
       for u in re.findall(r'(https?://\S+)', source):
         u = u.replace("\"", "").replace(",", "")
         if u.endswith(".m3u8") and "(" not in u:
+          with urlopen(u) as file:
+            content = file.read().decode().splitlines()
+          for line in content:
+            if(line.startswith("./")): 
+              resolutions.append((line.split("/")[MAX_RESOLUTION_POSITION]))
+          stream_resolution = resolutions[0]
           stream_playlist_url = u
 
       # extract video segments
-      stream_playlist_url = stream_playlist_url.replace("playlist.m3u8", f"{STREAM_RESOLUTION}/playlist_{STREAM_RESOLUTION}.m3u8")
+      stream_playlist_url = stream_playlist_url.replace("playlist.m3u8", f"{stream_resolution}/playlist_{stream_resolution}.m3u8")
       playlist = requests.get(stream_playlist_url).text
       playlist_urls = list()
       for line in playlist.split("\n"):
         if line.endswith(".ts"):
-          playlist_urls.append(stream_playlist_url.replace(f"playlist_{STREAM_RESOLUTION}.m3u8", line))
+          playlist_urls.append(stream_playlist_url.replace(f"playlist_{stream_resolution}.m3u8", line))
 
       # download all video segments and merge them in a buffer file
       ep_name_tmp = ep_name_dest + ".ts.temp"
