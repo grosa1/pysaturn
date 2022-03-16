@@ -54,7 +54,7 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
         continue
 
     logging.info(f"Processing {ep_name}")
-    response = requests.get(links[0])
+    response = requests.get(link)
     soup = BeautifulSoup(response.text, 'html.parser') 
 
     stream_page_url = None
