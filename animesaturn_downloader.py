@@ -13,8 +13,28 @@ logging.getLogger('requests_html').setLevel(logging.WARNING)
 
 
 DOWNLOAD_MAX_RETRIES = 3
+SLEEP_SECONDS_ON_ERROR = 3
 STREAM_RESOLUTION = "480p"
 #STREAM_RESOLUTION = "720p"
+
+
+def render_player_page(player_page_url: str) -> str:
+  retries = 0
+  try:
+    with HTMLSession() as session:
+      r = session.get(player_page_url)
+      r.html.render()
+      source = r.html.html
+      assert source is not None
+      return source
+  except Exception as e:
+    retries += 1
+    if retries > DOWNLOAD_MAX_RETRIES:
+      logging.error(traceback.print_exc())
+    else:
+      logging.warning(f"Error while rendering page {player_page_url}, retrying...")
+      time.sleep(SLEEP_SECONDS_ON_ERROR)
+      return render_player_page(player_page_url)
 
 
 def download_resource(resource_url: str):
@@ -29,7 +49,7 @@ def download_resource(resource_url: str):
       logging.error(traceback.print_exc())
     else:
       logging.warning(f"Error while downloading {resource_url}, retrying...")
-      time.sleep(3)
+      time.sleep(SLEEP_SECONDS_ON_ERROR)
       return download_resource(resource_url)
 
 
@@ -57,17 +77,13 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
     response = requests.get(link)
     soup = BeautifulSoup(response.text, 'html.parser') 
 
-    stream_page_url = None
+    player_page_url = None
     for l in soup.find_all('a'):
       url = l.get('href')
       if "watch?file=" in url:
-        stream_page_url = url
+        player_page_url = url
 
-    source = None
-    with HTMLSession() as session:
-      r = session.get(stream_page_url)
-      r.html.render()
-      source = r.html.html
+    source = render_player_page(player_page_url)
 
     # look for mp4 stream or else m3u8 stream
     mp4_url = re.findall(r'(https?://\S+.mp4)', source)
