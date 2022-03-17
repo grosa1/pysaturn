@@ -20,8 +20,12 @@ For example, to download the first 13 episodes, you can use the following param:
 The script will automatically download all the episodes if you omit the `episodes_range` param.
 
 ### Usage example
-```python3 animesaturn_downloader.py https://www.animesaturn.it/anime/Fullmetal-Alchemist-Brotherhood-ITA-aszb```
+```
+python3 animesaturn_downloader.py https://www.animesaturn.it/anime/Fullmetal-Alchemist-Brotherhood-ITA-aszb
+```
 
 or 
 
-```python3 animesaturn_downloader.py https://www.animesaturn.it/anime/Fullmetal-Alchemist-Brotherhood-ITA-aszb 1-13```
+```
+python3 animesaturn_downloader.py https://www.animesaturn.it/anime/Fullmetal-Alchemist-Brotherhood-ITA-aszb 1-13
+```
