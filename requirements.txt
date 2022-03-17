@@ -2,3 +2,4 @@ beautifulsoup4==4.10.0
 progress==1.6
 requests==2.26.0
 requests_html==0.10.0
+alive-progress==2.3

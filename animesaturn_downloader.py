@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import re
 import os
 from requests_html import HTMLSession
+from alive_progress import alive_bar
 import traceback
 import time
 
@@ -115,9 +116,10 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
       with open(ep_name_tmp, "wb") as output_buffer:
         n_parts = len(playlist_urls)
         logging.info(f"Found {n_parts} parts")
-        for i, pu in enumerate(playlist_urls):
-          logging.info(f"Downloading part {i+1} of {n_parts}")
-          output_buffer.write(download_resource(pu))
+        with alive_bar(n_parts) as bar:
+          for i, pu in enumerate(playlist_urls):
+            output_buffer.write(download_resource(pu))
+            bar()
       os.rename(ep_name_tmp, ep_name_dest + ".ts")
 
 
