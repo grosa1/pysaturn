@@ -1,4 +1,6 @@
+from operator import contains
 import sys
+from tkinter import W
 import requests 
 from bs4 import BeautifulSoup
 import re
@@ -17,6 +19,9 @@ SLEEP_SECONDS_ON_ERROR = 3
 STREAM_RESOLUTION = "480p"
 #STREAM_RESOLUTION = "720p"
 
+WARNING = '\033[93m'
+FAIL = '\033[91m'
+ENDC = '\033[0m'
 
 def render_player_page(player_page_url: str) -> str:
   retries = 0
@@ -32,7 +37,7 @@ def render_player_page(player_page_url: str) -> str:
     if retries > DOWNLOAD_MAX_RETRIES:
       logging.error(traceback.print_exc())
     else:
-      logging.warning(f"Error while rendering page {player_page_url}, retrying...")
+      logging.warning(FAIL + f"Error while rendering page {player_page_url}, retrying..." + ENDC)
       time.sleep(SLEEP_SECONDS_ON_ERROR)
       return render_player_page(player_page_url)
 
@@ -48,10 +53,25 @@ def download_resource(resource_url: str):
     if retries > DOWNLOAD_MAX_RETRIES:
       logging.error(traceback.print_exc())
     else:
-      logging.warning(f"Error while downloading {resource_url}, retrying...")
+      logging.warning(FAIL + f"Error while downloading {resource_url}, retrying..." + ENDC)
       time.sleep(SLEEP_SECONDS_ON_ERROR)
       return download_resource(resource_url)
 
+
+def is_episode_alredy_present(out_dir:str , ep_number: int) -> bool :
+  script_dir = os.getcwd()
+  try:
+    os.chdir(out_dir)
+    for file in os.listdir():
+      if(not os.path.isdir(file) and file.split(".")[-1] != "temp" and file.split('-')[-1].split(".")[0] == str(ep_number)):
+        os.chdir(script_dir)
+        return True
+  except:
+    print(WARNING + f"/{out_dir} directory not found, impossible perform duplicate episodes checking" + ENDC)
+
+  os.chdir(script_dir)
+  return False
+    
 
 def main(main_url: str, ep_range_start: int, ep_range_end: int):
   out_dir = main_url.split('/')[-1]
@@ -66,12 +86,13 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
   for link in links:
     ep_name = link.split('/')[-1]
     ep_name_dest = os.path.join(out_dir, ep_name)
-
     ep_num = int(ep_name.split('-')[-1])
-    if ep_range_start and ep_range_end:
-      if ep_num < ep_range_start or ep_num > ep_range_end:
-        logging.info(f"Skipping {ep_name}")
-        continue
+
+    if is_episode_alredy_present(out_dir, ep_num) or (
+      (ep_range_start and ep_range_end ) and 
+      (ep_num < ep_range_start or ep_num > ep_range_end)):
+      logging.info(f"Skipping {ep_name}")
+      continue
 
     logging.info(f"Processing {ep_name}")
     response = requests.get(link)
