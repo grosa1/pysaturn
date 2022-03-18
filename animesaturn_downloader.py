@@ -35,12 +35,13 @@ def download_resource(resource_url: str):
       download_resource(resource_url)
 
 def get_max_stream_resolution(resolution_list_url: str) -> int:
-    resolutions = list()
+    resolution = ""
     response = requests.get(resolution_list_url).text.splitlines()
     for line in response:
-        if(line.startswith("./")):
-            resolutions.append((line.split("/")[MAX_RESOLUTION_POSITION]))
-    return resolutions[0]
+        if line.startswith("./"):
+            resolution = line.split("/")[MAX_RESOLUTION_POSITION]
+            break
+    return resolution
 
 
 def main(main_url: str, ep_range_start: int, ep_range_end: int):
