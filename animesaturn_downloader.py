@@ -57,7 +57,7 @@ def get_max_stream_resolution(resolution_list_url: str) -> int:
     response = requests.get(resolution_list_url).text.splitlines()
     for line in response:
         if line.startswith("./"):
-            resolution = line.split("/")[MAX_RESOLUTION_POSITION]
+            resolution = line.split("/")[1]
             break
     return resolution
 
