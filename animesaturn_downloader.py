@@ -55,13 +55,11 @@ def download_resource(resource_url: str):
 
 
 def is_episode_alredy_present(out_dir:str , ep_name) -> bool :
-  print(ep_name)
   for file in os.listdir(out_dir):
-    list = file.split(".")
-    if(list[0] == ep_name and list[-1] != "temp"):
+    list = list(file.split("."))
+    if list[0] == ep_name and list[-1] != "temp":
       return True
   return False
-    
 
 def main(main_url: str, ep_range_start: int, ep_range_end: int):
   out_dir = main_url.split('/')[-1]
@@ -78,12 +76,12 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
     ep_name_dest = os.path.join(out_dir, ep_name)
     ep_num = int(ep_name.split('-')[-1])
 
-    if(ep_range_start and ep_range_end ):
-     if(ep_num < ep_range_start or ep_num > ep_range_end):
+    if ep_range_start and ep_range_end:
+     if ep_num < ep_range_start or ep_num > ep_range_end:
       logging.info(f"Skipping {ep_name}")
       continue
     
-    if(is_episode_alredy_present(out_dir, ep_name )): 
+    if is_episode_alredy_present(out_dir, ep_name ): 
       logging.info(f"Skipping {ep_name}")
       continue
 
