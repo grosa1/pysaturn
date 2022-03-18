@@ -55,9 +55,8 @@ def download_resource(resource_url: str):
 
 
 def is_episode_alredy_present(out_dir:str , ep_name) -> bool :
-  for file in os.listdir(out_dir):
-    list = list(file.split("."))
-    if list[0] == ep_name and list[-1] != "temp":
+  for episode in os.listdir(out_dir):
+    if ep_name in episode:
       return True
   return False
 
