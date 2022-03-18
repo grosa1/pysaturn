@@ -1,5 +1,6 @@
 from multiprocessing.connection import wait
 import sys
+from tracemalloc import stop
 import requests 
 from bs4 import BeautifulSoup
 import re
@@ -32,6 +33,14 @@ def download_resource(resource_url: str):
       logging.warning(f"Error while downloading {resource_url}, retrying...")
       time.sleep(3)
       download_resource(resource_url)
+
+def get_max_stream_resolution(resolution_list_url: str) -> int:
+    resolutions = list()
+    response = requests.get(resolution_list_url).text.splitlines()
+    for line in response:
+        if(line.startswith("./")):
+            resolutions.append((line.split("/")[MAX_RESOLUTION_POSITION]))
+    return resolutions[0]
 
 
 def main(main_url: str, ep_range_start: int, ep_range_end: int):
@@ -83,16 +92,10 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
       # look for the stream playlist url
       stream_playlist_url = None
       stream_resolution = None
-      resolutions = []
       for u in re.findall(r'(https?://\S+)', source):
         u = u.replace("\"", "").replace(",", "")
         if u.endswith(".m3u8") and "(" not in u:
-          with urlopen(u) as file:
-            content = file.read().decode().splitlines()
-          for line in content:
-            if(line.startswith("./")): 
-              resolutions.append((line.split("/")[MAX_RESOLUTION_POSITION]))
-          stream_resolution = resolutions[0]
+          stream_resolution = get_max_stream_resolution(u)
           stream_playlist_url = u
 
       # extract video segments
