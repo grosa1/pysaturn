@@ -64,7 +64,7 @@ def get_max_stream_resolution(resolution_list_url: str) -> int:
   
 def is_episode_alredy_present(out_dir:str , ep_name) -> bool :
   for episode in os.listdir(out_dir):
-    if ep_name in episode:
+    if ".temp" not in episode and ep_name in episode:
       return True
   return False
 
@@ -89,7 +89,7 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
       continue
     
     if is_episode_alredy_present(out_dir, ep_name ): 
-      logging.info(f"Alreasy present {ep_name}")
+      logging.info(f"Already present {ep_name}")
       continue
 
     logging.info(f"Processing {ep_name}")
