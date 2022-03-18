@@ -89,7 +89,7 @@ def main(main_url: str, ep_range_start: int, ep_range_end: int):
       continue
     
     if is_episode_alredy_present(out_dir, ep_name ): 
-      logging.info(f"Skipping {ep_name}")
+      logging.info(f"Alreasy present {ep_name}")
       continue
 
     logging.info(f"Processing {ep_name}")
